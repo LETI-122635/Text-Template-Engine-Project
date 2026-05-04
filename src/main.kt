@@ -1,0 +1,23 @@
+package project
+
+import project.json.parseJson
+import project.template.TemplateEngine
+import java.io.File
+
+fun main(args: Array<String>) {
+	if (args.size < 3) {
+		println("Usage: <template-file> <input-json> <output-file>")
+		return
+	}
+	val templateFile = args[0]
+	val inputFile = args[1]
+	val outputFile = args[2]
+
+	val templateText = File(templateFile).readText()
+	val inputText = File(inputFile).readText()
+	val inputObj = parseJson(inputText)
+
+	val result = TemplateEngine.render(templateText, inputObj)
+	File(outputFile).writeText(result)
+	println("Rendered to $outputFile")
+}

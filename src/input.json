@@ -1,0 +1,10 @@
+{
+  "user": {
+    "name": "Rui",
+    "age": 21,
+    "purchases": [
+      { "name": "Livro", "price": 30 },
+      { "name": "Teclado", "price": 70 }
+    ]
+  }
+}

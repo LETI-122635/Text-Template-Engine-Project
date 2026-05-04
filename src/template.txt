@@ -1,0 +1,59 @@
+Relatório de Utilizador
+=======================
+
+Nome: <rc> user.name <rc>
+Idade: <rc> user.age <rc>
+
+<rc>
+if user.age >= 18 {
+    print "Estado: Adulto\n"
+} else {
+    print "Estado: Menor\n"
+}
+<rc>
+
+Resumo de Compras
+-----------------
+
+<rc>
+total = 0
+count = 0
+for item in user.purchases {
+    total = total + item.price
+    count = count + 1
+}
+<rc>
+
+Número de compras: <rc> count <rc>
+Total gasto: <rc> total <rc>
+
+Detalhes:
+<rc>
+for item in user.purchases {
+    print "- "
+    print item.name
+    print " : "
+    print item.price
+    print "\n"
+}
+<rc>
+
+Análise:
+<rc>
+if count == 0 {
+    print "Sem compras registadas\n"
+} else {
+    media = total / count
+    print "Média por compra: "
+    print media
+    print "\n"
+
+    if media > 50 {
+        print "Cliente de alto valor\n"
+    } else {
+        print "Cliente regular\n"
+    }
+}
+<rc>
+
+Fim do relatório.

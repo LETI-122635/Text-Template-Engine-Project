@@ -1,0 +1,24 @@
+//esperado
+
+Relatório de Utilizador
+=======================
+
+Nome: Rui
+Idade: 21
+Estado: Adulto
+
+Resumo de Compras
+-----------------
+
+Número de compras: 2
+Total gasto: 100
+
+Detalhes:
+- Livro : 30
+- Teclado : 70
+
+Análise:
+Média por compra: 50
+Cliente regular
+
+Fim do relatório.
