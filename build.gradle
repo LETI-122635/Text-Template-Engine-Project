@@ -1,3 +1,51 @@
-// Gradle configuration removed — project is configured manually.
-// If you want Gradle again, re-add a build.gradle and re-import the project in IntelliJ.
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+    id 'java'
+    id 'application'
+}
+
+group = 'project'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.0'
+    implementation 'org.antlr:antlr4-runtime:4.13.2'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.0'
+}
+
+kotlin {
+    jvmToolchain(11)
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDirs = ['src']
+        }
+        java {
+            srcDirs = ['gen']
+        }
+    }
+}
+
+application {
+    mainClass = 'project.MainKt'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'project.MainKt'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+tasks.named('jar') {
+    archiveFileName = 'template-engine.jar'
+}
 

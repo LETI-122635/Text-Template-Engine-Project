@@ -1,24 +1,25 @@
 grammar Grammar;
 
 @header {
-  package project;
+package project;
 }
 
 
+// A template script is a sequence of statements, optionally preceded by params.
 script
     : parameters? statement* EOF
     ;
 
+// Optional formal parameters for script-like inputs.
 parameters
     : PARAMS LPAREN idList? RPAREN
     ;
 
+// Only the language constructs needed by the template engine are allowed here.
 statement
-    : assignment SEMI
-    | printStmt SEMI
-    | breakStmt SEMI
+    : assignment
+    | printStmt
     | ifStmt
-    | whileStmt
     | forStmt
     | block
     ;
@@ -27,30 +28,27 @@ block
     : LBRACE statement* RBRACE
     ;
 
+// Assignment stores a computed expression into a named variable.
 assignment
     : ID ASSIGN expression
     ;
 
+// print emits the value of an expression into the rendered output.
 printStmt
     : PRINT expression
     ;
 
-breakStmt
-    : BREAK
-    ;
-
+// if/else controls whether a nested block executes.
 ifStmt
     : IF expression block (ELSE block)?
     ;
 
-whileStmt
-    : WHILE expression block
-    ;
-
+// for iterates over a JSON array using one loop variable.
 forStmt
     : FOR ID IN expression block
     ;
 
+// Expressions follow standard precedence from equality down to atoms.
 expression
     : equality
     ;
@@ -78,11 +76,13 @@ atom
     | LPAREN expression RPAREN
     ;
 
+// Comma-separated identifiers used by the optional params rule.
 idList
     : ID (COMMA ID)*
     ;
 
 
+// Punctuation and keywords used by the language.
 LPAREN: '(';
 RPAREN: ')';
 LBRACE: '{';
@@ -100,13 +100,10 @@ LESS_EQUAL: '<=';
 GREATER: '>';
 GREATER_EQUAL: '>=';
 COMMA: ',';
-SEMI: ';';
 PARAMS: 'params';
 PRINT: 'print';
 IF: 'if';
 ELSE: 'else';
-WHILE: 'while';
-BREAK: 'break';
 FOR: 'for';
 IN: 'in';
 ID: [a-zA-Z_][a-zA-Z_0-9]*;

@@ -1,19 +1,19 @@
-Relatório de Utilizador
-=======================
+User Report
+===========
 
-Nome: <rc> user.name <rc>
-Idade: <rc> user.age <rc>
+Name: <rc> user.name <cr>
+Age: <rc> user.age <cr>
 
 <rc>
 if user.age >= 18 {
-    print "Estado: Adulto\n"
+    print "Status: Adult\n"
 } else {
-    print "Estado: Menor\n"
+    print "Status: Minor\n"
 }
-<rc>
+<cr>
 
-Resumo de Compras
------------------
+Purchase Summary
+----------------
 
 <rc>
 total = 0
@@ -22,12 +22,12 @@ for item in user.purchases {
     total = total + item.price
     count = count + 1
 }
-<rc>
+<cr>
 
-Número de compras: <rc> count <rc>
-Total gasto: <rc> total <rc>
+Number of purchases: <rc> count <cr>
+Total spent: <rc> total <cr>
 
-Detalhes:
+Details:
 <rc>
 for item in user.purchases {
     print "- "
@@ -36,24 +36,24 @@ for item in user.purchases {
     print item.price
     print "\n"
 }
-<rc>
+<cr>
 
-Análise:
+Analysis:
 <rc>
 if count == 0 {
-    print "Sem compras registadas\n"
+    print "No purchases recorded\n"
 } else {
     media = total / count
-    print "Média por compra: "
+    print "Average per purchase: "
     print media
     print "\n"
 
     if media > 50 {
-        print "Cliente de alto valor\n"
+        print "High value customer\n"
     } else {
-        print "Cliente regular\n"
+        print "Regular customer\n"
     }
 }
-<rc>
+<cr>
 
-Fim do relatório.
+End of report.

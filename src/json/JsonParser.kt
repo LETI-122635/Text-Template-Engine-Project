@@ -1,32 +1,51 @@
 package project.json
 
-// Minimal JSON parser (no external libraries). Supports objects, arrays, strings, numbers, booleans and null.
+// The tool uses its own JSON model so it does not depend on an external parser library.
+sealed interface JValue
+
+// Object, array, string, number, boolean, and null cover the JSON types used by templates.
+data class JObject(val fields: Map<String, JValue>) : JValue
+
+data class JArray(val elements: List<JValue>) : JValue
+
+data class JString(val value: String) : JValue
+
+data class JNumber(val value: Double) : JValue
+
+data class JBoolean(val value: Boolean) : JValue
+
+object JNull : JValue
+
+// A minimal recursive-descent parser for the subset of JSON needed by the project.
 class JsonParser(private val src: String) {
     private var pos = 0
     private val len = src.length
 
-    fun parse(): Any? {
+    // Parse one complete JSON value from the input text.
+    fun parse(): JValue {
         skipWhitespace()
         val v = parseValue()
         skipWhitespace()
         return v
     }
 
-    private fun parseValue(): Any? {
+    // Dispatch based on the next token-like character.
+    private fun parseValue(): JValue {
         skipWhitespace()
-        if (pos >= len) return null
+        if (pos >= len) return JNull
         return when (src[pos]) {
             '{' -> parseObject()
             '[' -> parseArray()
-            '"' -> parseString()
-            't' -> parseLiteral("true", true)
-            'f' -> parseLiteral("false", false)
-            'n' -> parseLiteral("null", null)
-            else -> parseNumber()
+            '"' -> JString(parseString())
+            't' -> parseLiteral("true", JBoolean(true))
+            'f' -> parseLiteral("false", JBoolean(false))
+            'n' -> parseLiteral("null", JNull)
+            else -> JNumber(parseNumber().toDouble())
         }
     }
 
-    private fun parseLiteral(name: String, value: Any?): Any? {
+    // Recognize fixed literals such as true, false, and null.
+    private fun parseLiteral(name: String, value: JValue): JValue {
         if (src.regionMatches(pos, name, 0, name.length)) {
             pos += name.length
             return value
@@ -34,9 +53,10 @@ class JsonParser(private val src: String) {
         error("Invalid token at $pos")
     }
 
+    // Numbers are parsed manually so we do not depend on any JSON library.
     private fun parseNumber(): Number {
         val start = pos
-        if (src[pos] == '-') pos++
+        if (pos < len && src[pos] == '-') pos++
         while (pos < len && src[pos].isDigit()) pos++
         var isDouble = false
         if (pos < len && src[pos] == '.') {
@@ -54,6 +74,7 @@ class JsonParser(private val src: String) {
         return if (isDouble) token.toDouble() else token.toLong()
     }
 
+    // Strings handle the standard escape sequences used by the templates.
     private fun parseString(): String {
         val sb = StringBuilder()
         if (src[pos] != '"') error("Expected '\"' at $pos")
@@ -74,9 +95,11 @@ class JsonParser(private val src: String) {
                     'r' -> sb.append('\r')
                     't' -> sb.append('\t')
                     'u' -> {
-                        val hex = src.substring(pos, pos + 4)
-                        sb.append(hex.toInt(16).toChar())
-                        pos += 4
+                        if (pos + 4 <= len) {
+                            val hex = src.substring(pos, pos + 4)
+                            sb.append(hex.toInt(16).toChar())
+                            pos += 4
+                        }
                     }
                     else -> sb.append(e)
                 }
@@ -87,11 +110,12 @@ class JsonParser(private val src: String) {
         return sb.toString()
     }
 
-    private fun parseArray(): List<Any?> {
-        val list = mutableListOf<Any?>()
+    // Arrays are parsed left-to-right and stored as a list of JValue nodes.
+    private fun parseArray(): JArray {
+        val list = mutableListOf<JValue>()
         expect('[')
         skipWhitespace()
-        if (peek() == ']') { pos++; return list }
+        if (peek() == ']') { pos++; return JArray(list) }
         while (true) {
             skipWhitespace()
             list.add(parseValue())
@@ -101,14 +125,15 @@ class JsonParser(private val src: String) {
             if (c == ']') { pos++; break }
             error("Expected ',' or ']' in array at $pos")
         }
-        return list
+        return JArray(list)
     }
 
-    private fun parseObject(): Map<String, Any?> {
-        val map = mutableMapOf<String, Any?>()
+    // Objects map string keys to parsed JSON values.
+    private fun parseObject(): JObject {
+        val map = mutableMapOf<String, JValue>()
         expect('{')
         skipWhitespace()
-        if (peek() == '}') { pos++; return map }
+        if (peek() == '}') { pos++; return JObject(map) }
         while (true) {
             skipWhitespace()
             val key = parseString()
@@ -124,9 +149,10 @@ class JsonParser(private val src: String) {
             if (c == '}') { pos++; break }
             error("Expected ',' or '}' in object at $pos")
         }
-        return map
+        return JObject(map)
     }
 
+    // Small helpers keep the parser logic easy to read.
     private fun peek(): Char = if (pos < len) src[pos] else '\u0000'
 
     private fun expect(ch: Char) {
@@ -138,6 +164,5 @@ class JsonParser(private val src: String) {
     }
 }
 
-fun parseJson(text: String): Any? = JsonParser(text).parse()
-
-
+// Convenience wrapper used by the rest of the application.
+fun parseJson(text: String): JValue = JsonParser(text).parse()

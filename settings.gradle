@@ -1,2 +1,2 @@
-// settings.gradle removed (Gradle not used). If you re-enable Gradle, restore project name here.
+rootProject.name = 'Projeto'
 

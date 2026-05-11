@@ -1,40 +1,44 @@
 package project.ast
 
-//TEMPLATE SCRIPT
+// The AST is the shared contract between parsing, interpretation, and rendering.
+
+// A complete template script contains zero or more executable statements.
 data class Script(val statements: List<Statement>)
 
-//STATEMENTS
+// All executable constructs in the template language.
 sealed interface Statement
 
-data class Assign(val name:String, val expr: Expression) : Statement
+// Stores the result of an expression in a named variable.
+data class Assign(val name: String, val expr: Expression) : Statement
 
+// Writes an expression value to the rendered output.
 data class Output(val expr: Expression) : Statement
 
-data class Block(val statements: List<Statement>) : Statement
-
+// Standard conditional with an optional else branch.
 data class If(val condition: Expression, val thenBlock: List<Statement>, val elseBlock: List<Statement> = emptyList()) : Statement
 
-data class For(val variablie: String, val collection: Expression, val body: List<Statement>) : Statement
+// Loop over a JSON array, binding each element to the loop variable.
+data class For(val variable: String, val collection: Expression, val body: List<Statement>) : Statement
 
-data class While(val condition: Expression, val body: List<Statement>) : Statement
-
-object Break : Statement
-
-//EXPRESSIONS
+// All value-producing nodes in the language.
 sealed interface Expression
 
-data class NumberLiteral(val value: Int) : Expression
+// Numeric literal stored as Double to simplify arithmetic operations.
+data class NumberLiteral(val value: Double) : Expression
 
+// String literal after escape processing.
 data class StringLiteral(val value: String) : Expression
 
+// Variable reference resolved against the environment or input JSON.
 data class Variable(val name: String) : Expression
 
-//user.name / user.age
+// Nested property access such as user.name or item.price.
 data class PropertyAccess(val target: Expression, val property: String) : Expression
 
+// Binary operator node used for arithmetic and boolean comparisons.
 data class BinaryOp(val left: Expression, val op: Operator, val right: Expression) : Expression
 
-//OPERATORS
+// Operators are kept explicit so interpretation stays simple and typed.
 enum class Operator {
     PLUS, MINUS, TIMES, DIV, MOD,
     EQ, NEQ,

@@ -3,8 +3,8 @@
     "name": "Rui",
     "age": 21,
     "purchases": [
-      { "name": "Livro", "price": 30 },
-      { "name": "Teclado", "price": 70 }
+      { "name": "Book", "price": 30 },
+      { "name": "Keyboard", "price": 70 }
     ]
   }
 }

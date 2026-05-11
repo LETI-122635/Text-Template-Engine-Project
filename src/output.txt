@@ -1,24 +1,28 @@
-//esperado
+User Report
+===========
 
-Relatório de Utilizador
-=======================
+Name: Rui
+Age: 21
 
-Nome: Rui
-Idade: 21
-Estado: Adulto
+Status: Adult
 
-Resumo de Compras
------------------
 
-Número de compras: 2
-Total gasto: 100
+Purchase Summary
+----------------
 
-Detalhes:
-- Livro : 30
-- Teclado : 70
 
-Análise:
-Média por compra: 50
-Cliente regular
 
-Fim do relatório.
+Number of purchases: 2
+Total spent: 100
+
+Details:
+- Book : 30
+- Keyboard : 70
+
+
+Analysis:
+Average per purchase: 50
+Regular customer
+
+
+End of report.
