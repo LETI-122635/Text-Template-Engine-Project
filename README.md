@@ -79,12 +79,12 @@ Code blocks are delimited by `<rc>` and `<cr>`:
 
 **Expression mode** (single line, outputs result):
 ```
-<rc> user.name <rc>
+<rc> user.name <cr>
 ```
 
 **Script mode** (multiple statements, controls output):
 ```
-<rc>
+<cr>
 if condition {
     print "text\n"
 }
@@ -179,5 +179,5 @@ Supported escapes: `\n` `\t` `\r` `\\` `\"`
 
 - **Language:** Kotlin
 - **Parser:** ANTLR 4
-- **Runtime:** JVM (Java 8+)
+- **Runtime:** JVM (Java 21+)
 

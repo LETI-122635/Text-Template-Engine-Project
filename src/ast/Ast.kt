@@ -1,44 +1,63 @@
 package project.ast
 
-// The AST is the shared contract between parsing, interpretation, and rendering.
+/**
+ * The Abstract Syntax Tree (AST) represents the language semantics.
+ *
+ * It is independent from:
+ * - how it is parsed (ANTLR grammar)
+ * - how it is executed (interpreter)
+ * - how it is rendered (template engine)
+ *
+ * This AST is the contract between the compiler and runtime.
+ */
 
-// A complete template script contains zero or more executable statements.
+// Root of a language script.
 data class Script(val statements: List<Statement>)
 
-// All executable constructs in the template language.
+// All executable constructs in the language.
 sealed interface Statement
 
-// Stores the result of an expression in a named variable.
+// Assignment: bind an expression to a named variable.
+// Variables persist throughout the execution context.
 data class Assign(val name: String, val expr: Expression) : Statement
 
-// Writes an expression value to the rendered output.
+// Print: output an expression value to the rendered result.
 data class Output(val expr: Expression) : Statement
 
-// Standard conditional with an optional else branch.
+// Conditional: execute one of two blocks based on a condition.
 data class If(val condition: Expression, val thenBlock: List<Statement>, val elseBlock: List<Statement> = emptyList()) : Statement
 
-// Loop over a JSON array, binding each element to the loop variable.
+// Loop: iterate over a JSON array value, executing a body for each element.
 data class For(val variable: String, val collection: Expression, val body: List<Statement>) : Statement
 
-// All value-producing nodes in the language.
+// While loop: repeated execution while condition holds.
+data class While(val condition: Expression, val body: List<Statement>) : Statement
+
+// Break statement: interrupts the nearest enclosing loop.
+object Break : Statement
+
+// All value-producing expressions.
 sealed interface Expression
 
-// Numeric literal stored as Double to simplify arithmetic operations.
+// Numeric literal.
 data class NumberLiteral(val value: Double) : Expression
 
-// String literal after escape processing.
+// String literal.
 data class StringLiteral(val value: String) : Expression
 
-// Variable reference resolved against the environment or input JSON.
+// Variable reference.
+// Resolves to the variable environment first, then to the root input object.
 data class Variable(val name: String) : Expression
 
-// Nested property access such as user.name or item.price.
+// Property access: structured field navigation.
+// Examples: user.name, item.price, user.address.city
+// This is a first-class language feature, not a parsing trick.
 data class PropertyAccess(val target: Expression, val property: String) : Expression
 
-// Binary operator node used for arithmetic and boolean comparisons.
+// Binary operation: arithmetic, comparison, or boolean operation.
 data class BinaryOp(val left: Expression, val op: Operator, val right: Expression) : Expression
 
-// Operators are kept explicit so interpretation stays simple and typed.
+// All operators supported by the language.
 enum class Operator {
     PLUS, MINUS, TIMES, DIV, MOD,
     EQ, NEQ,

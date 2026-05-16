@@ -1,59 +1,160 @@
-User Report
-===========
+====================================================================
+                        USER REPORT TEMPLATE
+====================================================================
+
+This template demonstrates a comprehensive embedded scripting language
+that supports:
+- variable assignment and persistence across template blocks
+- nested property access (e.g., user.purchases[0].name)
+- conditionals (if/else)
+- loops (for..in and while)
+- loop interruption with break statement
+- arithmetic and comparison operators
+- string concatenation
+
+====================================================================
+
+User Profile
+============
 
 Name: <rc> user.name <cr>
 Age: <rc> user.age <cr>
-
-<rc>
+Age verification: <rc>
 if user.age >= 18 {
-    print "Status: Adult\n"
+    print "Adult"
 } else {
-    print "Status: Minor\n"
+    print "Minor"
 }
 <cr>
 
+====================================================================
+
 Purchase Summary
-----------------
+================
 
 <rc>
+/* Initialize counters and totals.
+   These variables will persist throughout this and subsequent blocks.
+*/
 total = 0
 count = 0
+max_price = 0
+min_price = 999999
+
+/* Iterate through purchases and compute statistics.
+   The loop variable 'item' is local to this loop.
+*/
 for item in user.purchases {
     total = total + item.price
     count = count + 1
-}
-<cr>
 
-Number of purchases: <rc> count <cr>
-Total spent: <rc> total <cr>
-
-Details:
-<rc>
-for item in user.purchases {
-    print "- "
-    print item.name
-    print " : "
-    print item.price
-    print "\n"
-}
-<cr>
-
-Analysis:
-<rc>
-if count == 0 {
-    print "No purchases recorded\n"
-} else {
-    media = total / count
-    print "Average per purchase: "
-    print media
-    print "\n"
-
-    if media > 50 {
-        print "High value customer\n"
-    } else {
-        print "Regular customer\n"
+    if item.price > max_price {
+        max_price = item.price
+    }
+    if item.price < min_price {
+        min_price = item.price
     }
 }
 <cr>
 
-End of report.
+Total purchases: <rc> count <cr> items
+Total spent: <rc> total <cr> (currency units)
+Maximum price: <rc> max_price <cr>
+Minimum price: <rc> min_price <cr>
+
+Purchase Details:
+<rc>
+for item in user.purchases {
+    print "• "
+    print item.name
+    print " - "
+    print item.price
+    print " units\n"
+}
+<cr>
+
+====================================================================
+
+Statistical Analysis
+====================
+
+<rc>
+if count == 0 {
+    print "No purchases recorded.\n"
+} else {
+    average = total / count
+
+    print "Average price per purchase: "
+    print average
+    print "\n"
+
+    if average > 50 {
+        print "Classification: High-value customer\n"
+    } else {
+        if average > 20 {
+            print "Classification: Regular customer\n"
+        } else {
+            print "Classification: Budget-conscious customer\n"
+        }
+    }
+}
+<cr>
+
+====================================================================
+
+Advanced Control Flow Demonstration
+===================================
+
+<rc>
+counter = 0
+print "Counting: "
+while counter < 20 {
+    if counter == 7 {
+        break
+    }
+    print counter
+    print " "
+    counter = counter + 1
+}
+print "...stopped at "
+print counter
+print "\n"
+<cr>
+
+<rc>
+subtotal = 0
+item_count = 0
+for p in user.purchases {
+    if p.price > 50 {
+        subtotal = subtotal + p.price
+        item_count = item_count + 1
+    }
+}
+print "Items with price > 50: "
+print item_count
+print ", subtotal: "
+print subtotal
+print "\n"
+<cr>
+
+<rc>
+idx = 0
+print "\nIndexed purchase list:\n"
+for purchase in user.purchases {
+    print "["
+    print idx
+    print "] "
+    print purchase.name
+    print ": "
+    print purchase.price
+    print "\n"
+    idx = idx + 1
+}
+<cr>
+
+====================================================================
+
+End of Report
+=============
+
+Report generated successfully. All language features demonstrated.

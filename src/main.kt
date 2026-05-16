@@ -4,24 +4,29 @@ import project.json.parseJson
 import project.template.TemplateEngine
 import java.io.File
 
-fun main(args: Array<String>) {
-	if (args.size < 3) {
-		System.err.println("Usage: <template-file> <input-json> <output-file>")
-		return
-	}
-	val templateFile = args[0]
-	val inputFile = args[1]
-	val outputFile = args[2]
+/**
+ * main.kt is the entry point for using the language as a template renderer.
+ *
+ * This program automatically processes the template and generates output.
+ */
+fun main() {
+	// Default file paths
+	val templateFile = "src/template.txt"
+	val inputFile = "src/input.json"
+	val outputFile = "src/output.txt"
 
 	try {
+		// Read template and input.
 		val templateText = File(templateFile).readText()
-
 		val inputText = File(inputFile).readText()
 
+		// Parse input as JSON.
 		val inputObj = parseJson(inputText)
 
+		// Render template using the language runtime via TemplateEngine frontend.
 		val result = TemplateEngine.render(templateText, inputObj)
 
+		// Write result to output file.
 		File(outputFile).writeText(result)
 	} catch (e: Exception) {
 		System.err.println("ERROR: ${e.message}")

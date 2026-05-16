@@ -1,7 +1,16 @@
-package project.parser
+package parser
 
-import project.GrammarParser.*
+import gen_parser.GrammarParser.*
 import project.ast.*
+
+// NOTE: Generated ANTLR classes live under package `gen_parser`.
+// This adapter stays in `parser` and maps parse-tree contexts to AST nodes.
+
+/**
+ * Parser2AST converts ANTLR parse trees into the language AST.
+ *
+ * This is the compilation phase that transforms concrete syntax into abstract semantics.
+ */
 
 // Entry point: a script becomes a flat list of AST statements.
 fun ScriptContext.toAst(): Script =
@@ -14,6 +23,8 @@ fun StatementContext.toAst(): Statement {
         printStmt() != null -> printStmt().toAst()
         ifStmt() != null -> ifStmt().toAst()
         forStmt() != null -> forStmt().toAst()
+        whileStmt() != null -> whileStmt().toAst()
+        breakStmt() != null -> Break
         else -> error("Unknown statement: $text")
     }
 }
@@ -24,7 +35,7 @@ fun AssignmentContext.toAst(): Assign =
 fun PrintStmtContext.toAst(): Output =
     Output(expression().toAst())
 
-// if/else keeps block contents as lists of statements for easy execution.
+// if/else blocks contain statement lists for execution.
 fun IfStmtContext.toAst(): If {
     val condition = expression().toAst()
     val thenBlock = block(0).statement().map { it.toAst() }
@@ -32,23 +43,23 @@ fun IfStmtContext.toAst(): If {
     return If(condition, thenBlock, elseBlock)
 }
 
-// for stores the loop variable, the collection expression, and the body statements.
+// for loop binds a variable, evaluates a collection, and executes a body for each element.
 fun ForStmtContext.toAst(): For =
     For(ID().text, expression().toAst(), block().statement().map { it.toAst() })
 
-// Blocks are converted directly into statement lists so nested execution stays simple.
-fun BlockContext.toAst(): List<Statement> =
-    statement().map { it.toAst() }
+fun WhileStmtContext.toAst(): While =
+    While(expression().toAst(), block().statement().map { it.toAst() })
 
-// Expression precedence is handled top-down, from equality down to atoms.
+// Expression parsing follows standard precedence: equality > comparison > additive > multiplicative > atom.
 fun ExpressionContext.toAst(): Expression =
     equality().toAst()
 
-// Equality is left-associative and supports == and !=.
+// Equality: == and !=
 fun EqualityContext.toAst(): Expression {
     val comparisons = comparison()
     var expr = comparisons[0].toAst()
     var compIdx = 0
+    // ANTLR children alternate as operand, operator, operand... so operators are at odd indexes.
     for (i in 1 until childCount step 2) {
         val opChild = getChild(i)
         compIdx++
@@ -62,11 +73,12 @@ fun EqualityContext.toAst(): Expression {
     return expr
 }
 
-// Comparison chains relational operators such as <, <=, >, and >=.
+// Comparison: <, <=, >, >=
 fun ComparisonContext.toAst(): Expression {
     val additives = additive()
     var expr = additives[0].toAst()
     var addIdx = 0
+    // Walk only operator nodes; operand contexts are indexed separately in `additives`.
     for (i in 1 until childCount step 2) {
         val opChild = getChild(i)
         addIdx++
@@ -82,11 +94,12 @@ fun ComparisonContext.toAst(): Expression {
     return expr
 }
 
-// Additive handles + and - over multiplicative subexpressions.
+// Additive: + and -
 fun AdditiveContext.toAst(): Expression {
     val multiplicatives = multiplicative()
     var expr = multiplicatives[0].toAst()
     var multIdx = 0
+    // This keeps left-to-right associativity when chaining additions/subtractions.
     for (i in 1 until childCount step 2) {
         val opChild = getChild(i)
         multIdx++
@@ -100,11 +113,12 @@ fun AdditiveContext.toAst(): Expression {
     return expr
 }
 
-// Multiplicative handles *, /, and % over atoms.
+// Multiplicative: *, /, %
 fun MultiplicativeContext.toAst(): Expression {
     val atoms = atom()
     var expr = atoms[0].toAst()
     var atomIdx = 0
+    // Same folding strategy as additive expressions, but for higher-precedence operators.
     for (i in 1 until childCount step 2) {
         val opChild = getChild(i)
         atomIdx++
@@ -119,7 +133,7 @@ fun MultiplicativeContext.toAst(): Expression {
     return expr
 }
 
-// Atoms cover literals, names, property chains, and grouped expressions.
+// Atoms: literals, variables, property access, and grouped expressions.
 fun AtomContext.toAst(): Expression {
     val txt = text
     return when {
@@ -127,6 +141,7 @@ fun AtomContext.toAst(): Expression {
         txt.startsWith('"') && txt.endsWith('"') -> StringLiteral(unescapeString(txt))
         ID().isNotEmpty() -> {
             if (ID().size > 1) {
+                // Property access chain: x.y.z becomes PropertyAccess(PropertyAccess(...))
                 var expr: Expression = Variable(ID(0).text)
                 for (i in 1 until ID().size) {
                     expr = PropertyAccess(expr, ID(i).text)
@@ -141,7 +156,7 @@ fun AtomContext.toAst(): Expression {
     }
 }
 
-// Simple escape decoding for template string literals.
+// Unescape string literals.
 private fun unescapeString(quoted: String): String {
     if (quoted.length < 2) return ""
     val content = quoted.substring(1, quoted.length - 1)

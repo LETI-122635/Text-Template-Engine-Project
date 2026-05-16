@@ -1,22 +1,36 @@
 package project.json
 
-// The tool uses its own JSON model so it does not depend on an external parser library.
+/**
+ * JSON value model used by the language runtime.
+ *
+ * This is the semantic value type: all runtime values are JValue instances.
+ * The language can operate on any JSON structure without external dependencies.
+ */
 sealed interface JValue
 
-// Object, array, string, number, boolean, and null cover the JSON types used by templates.
+// JSON object: map of string keys to values.
 data class JObject(val fields: Map<String, JValue>) : JValue
 
+// JSON array: ordered list of values.
 data class JArray(val elements: List<JValue>) : JValue
 
+// JSON string.
 data class JString(val value: String) : JValue
 
+// JSON number (stored as Double).
 data class JNumber(val value: Double) : JValue
 
+// JSON boolean.
 data class JBoolean(val value: Boolean) : JValue
 
+// JSON null.
 object JNull : JValue
 
-// A minimal recursive-descent parser for the subset of JSON needed by the project.
+/**
+ * Minimal JSON parser implemented without external dependencies.
+ *
+ * This parser supports the full JSON syntax and produces a JValue hierarchy.
+ */
 class JsonParser(private val src: String) {
     private var pos = 0
     private val len = src.length
@@ -29,7 +43,7 @@ class JsonParser(private val src: String) {
         return v
     }
 
-    // Dispatch based on the next token-like character.
+    // Dispatch based on the next character.
     private fun parseValue(): JValue {
         skipWhitespace()
         if (pos >= len) return JNull
@@ -53,7 +67,7 @@ class JsonParser(private val src: String) {
         error("Invalid token at $pos")
     }
 
-    // Numbers are parsed manually so we do not depend on any JSON library.
+    // Parse a JSON number (with support for decimals and scientific notation).
     private fun parseNumber(): Number {
         val start = pos
         if (pos < len && src[pos] == '-') pos++
@@ -74,7 +88,7 @@ class JsonParser(private val src: String) {
         return if (isDouble) token.toDouble() else token.toLong()
     }
 
-    // Strings handle the standard escape sequences used by the templates.
+    // Parse a JSON string with escape sequence support.
     private fun parseString(): String {
         val sb = StringBuilder()
         if (src[pos] != '"') error("Expected '\"' at $pos")
@@ -110,7 +124,7 @@ class JsonParser(private val src: String) {
         return sb.toString()
     }
 
-    // Arrays are parsed left-to-right and stored as a list of JValue nodes.
+    // Parse a JSON array.
     private fun parseArray(): JArray {
         val list = mutableListOf<JValue>()
         expect('[')
@@ -128,7 +142,7 @@ class JsonParser(private val src: String) {
         return JArray(list)
     }
 
-    // Objects map string keys to parsed JSON values.
+    // Parse a JSON object.
     private fun parseObject(): JObject {
         val map = mutableMapOf<String, JValue>()
         expect('{')
@@ -152,7 +166,7 @@ class JsonParser(private val src: String) {
         return JObject(map)
     }
 
-    // Small helpers keep the parser logic easy to read.
+    // Helper functions for parsing.
     private fun peek(): Char = if (pos < len) src[pos] else '\u0000'
 
     private fun expect(ch: Char) {
@@ -164,5 +178,5 @@ class JsonParser(private val src: String) {
     }
 }
 
-// Convenience wrapper used by the rest of the application.
+// Convenience function: parse a JSON string into a value.
 fun parseJson(text: String): JValue = JsonParser(text).parse()

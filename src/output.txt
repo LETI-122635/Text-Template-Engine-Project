@@ -1,28 +1,72 @@
-User Report
-===========
+====================================================================
+                        USER REPORT TEMPLATE
+====================================================================
+
+This template demonstrates a comprehensive embedded scripting language
+that supports:
+- variable assignment and persistence across template blocks
+- nested property access (e.g., user.purchases[0].name)
+- conditionals (if/else)
+- loops (for..in and while)
+- loop interruption with break statement
+- arithmetic and comparison operators
+- string concatenation
+
+====================================================================
+
+User Profile
+============
 
 Name: Rui
 Age: 21
+Age verification: Adult
 
-Status: Adult
-
+====================================================================
 
 Purchase Summary
-----------------
+================
 
 
 
-Number of purchases: 2
-Total spent: 100
+Total purchases: 2 items
+Total spent: 100 (currency units)
+Maximum price: 70
+Minimum price: 30
 
-Details:
-- Book : 30
-- Keyboard : 70
-
-
-Analysis:
-Average per purchase: 50
-Regular customer
+Purchase Details:
+• Book - 30 units
+• Keyboard - 70 units
 
 
-End of report.
+====================================================================
+
+Statistical Analysis
+====================
+
+Average price per purchase: 50
+Classification: Regular customer
+
+
+====================================================================
+
+Advanced Control Flow Demonstration
+===================================
+
+Counting: 0 1 2 3 4 5 6 ...stopped at 7
+
+
+Items with price > 50: 1, subtotal: 70
+
+
+
+Indexed purchase list:
+[0] Book: 30
+[1] Keyboard: 70
+
+
+====================================================================
+
+End of Report
+=============
+
+Report generated successfully. All language features demonstrated.

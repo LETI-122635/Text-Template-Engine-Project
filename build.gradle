@@ -1,51 +1,115 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
-    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.25'
+    id 'antlr'
     id 'application'
+    id 'idea'
 }
 
 group = 'project'
-version = '1.0'
+version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.0'
-    implementation 'org.antlr:antlr4-runtime:4.13.2'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.25"
+    implementation "org.antlr:antlr4-runtime:4.13.2"
+    antlr "org.antlr:antlr4:4.13.2"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+}
+
+// Use Java toolchain (JDK 21)
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 kotlin {
-    jvmToolchain(11)
+    // Configure Kotlin compiler to use the same JVM toolchain
+    jvmToolchain(21)
+
+    // Configure Kotlin plugin source sets explicitly to use flat 'src/' layout
+    sourceSets {
+        main {
+            kotlin.srcDirs = ['src', 'gen']
+        }
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
+}
+
+// Project uses a flat "src/" layout (not src/main/kotlin).
+// Tell ANTLR where the grammar lives and compile the generated parser classes separately.
+def antlrJavaOutputDir = file("${buildDir}/generated/antlr-classes")
+
+tasks.register('compileAntlrJava', JavaCompile) {
+    source = fileTree('gen/gen_parser') {
+        include '**/*.java'
+    }
+    classpath = configurations.compileClasspath + configurations.antlr
+    destinationDirectory = antlrJavaOutputDir
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
+    dependsOn tasks.named('generateGrammarSource')
 }
 
 sourceSets {
     main {
-        kotlin {
-            srcDirs = ['src']
+        antlr {
+            srcDirs = ['src/parser']
         }
         java {
-            srcDirs = ['gen']
+            // No manual Java sources in the main source set.
+            srcDirs = []
         }
+        resources {
+            srcDirs = ['src/resources']
+        }
+        output.dir(antlrJavaOutputDir, builtBy: 'compileAntlrJava')
+        compileClasspath += files(antlrJavaOutputDir)
     }
+}
+
+// Mark generated parser sources for IntelliJ as a generated source root.
+idea {
+    module {
+        generatedSourceDirs += file('gen')
+    }
+}
+
+// Configure ANTLR generation: place generated sources into the project 'gen/' folder
+// so the IDE sees them as generated sources and they are included in compilation.
+// The 'generateGrammarSource' task is provided by the 'antlr' plugin.
+tasks.named('generateGrammarSource') {
+    // Write generated sources under gen/parser to keep output deterministic.
+    outputDirectory = file("${projectDir}/gen/gen_parser")
+}
+
+// Ensure Kotlin compilation happens after the parser is generated
+tasks.named('compileKotlin') {
+    dependsOn tasks.named('generateGrammarSource')
+    dependsOn tasks.named('compileAntlrJava')
+}
+
+tasks.named('compileJava') {
+    enabled = false
+}
+
+test {
+    useJUnitPlatform()
 }
 
 application {
+    // Set the default main class. Adjust if your main.kt has a package.
     mainClass = 'project.MainKt'
 }
-
-jar {
-    manifest {
-        attributes 'Main-Class': 'project.MainKt'
-    }
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
-
-tasks.named('jar') {
-    archiveFileName = 'template-engine.jar'
-}
-
